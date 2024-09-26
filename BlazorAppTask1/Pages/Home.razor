@@ -1,0 +1,88 @@
+﻿@page "/"
+@using BlazorAppTask1.Model
+
+<PageTitle>To Do List</PageTitle>
+
+<h3 class="text-center" style="font-family:Bahnschrift">To Do List</h3>
+
+<div class="mb-3">
+    <input type="text" @bind="NewToDo" class="form-control" placeholder="Enter New Item" />
+    <button class="btn btn-primary mt-2" @onclick="AddToDo">Add</button>
+</div>
+
+<table class="table table-striped" style="font-family:Bahnschrift">
+    <thead>
+        <tr>
+            <th scope="col">Completed</th>
+            <th scope="col">Description</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in toDoItems)
+        {
+            <tr class="@GetRowCssClass(item)">
+                <td>
+                    <input type="checkbox" @bind="item.IsCompleted" />
+                </td>
+                <td>
+                    @if (item.IsEditing)
+                    {
+                        <input type="text" @bind="item.Description" @onblur="() => EndEdit(item)" class="form-control" disabled="@item.IsCompleted" />
+                        <button class="btn btn-success btn-sm pt-2" @onclick="() => EndEdit(item)">Save</button>
+                    }
+                    else
+                    {
+                        <span class="@GetItemCssClass(item)">@item.Description</span>
+                        <button class="btn btn-warning btn-sm" @onclick="() => StartEdit(item)" disabled="@item.IsCompleted">Edit</button>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => RemoveItem(item)" disabled="@item.IsCompleted">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private string? NewToDo { get; set; }
+    private List<ToDoItem> toDoItems = new List<ToDoItem>();
+
+    private void AddToDo()
+    {
+        if (!string.IsNullOrWhiteSpace(NewToDo))
+        {
+            toDoItems.Add(new ToDoItem { Description = NewToDo });
+            NewToDo = string.Empty;
+        }
+    }
+
+    private void StartEdit(ToDoItem item)
+    {
+        item.IsEditing = true;
+    }
+
+    private void EndEdit(ToDoItem item)
+    {
+        item.IsEditing = false;
+    }
+
+    private void RemoveItem(ToDoItem item)
+    {
+        toDoItems.Remove(item);
+    }
+    private void UpdateCompletion(ToDoItem item)
+    {
+        item.IsCompleted = !item.IsCompleted;
+    }
+    private string GetRowCssClass(ToDoItem item)
+    {
+        return item.IsCompleted ? "table-secondary" : "";
+    }
+
+    private string GetItemCssClass(ToDoItem item)
+    {
+        return item.IsCompleted ? "completed" : "";
+    }
+}
