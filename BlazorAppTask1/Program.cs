@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using BlazorAppTask1;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace BlazorAppTask1
 {
@@ -8,17 +10,13 @@ namespace BlazorAppTask1
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
             builder.RootComponents.Add<App>("#app");
-            builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7231/api/") });
 
-            builder.Services.AddOidcAuthentication(options =>
-            {
-                // Configure your authentication provider options here.
-                // For more information, see https://aka.ms/blazor-standalone-auth
-                builder.Configuration.Bind("Local", options.ProviderOptions);
-            });
+            builder.Services.AddAuthorizationCore(); 
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>(); 
 
             await builder.Build().RunAsync();
         }

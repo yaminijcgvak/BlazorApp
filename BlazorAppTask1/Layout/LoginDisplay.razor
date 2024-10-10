@@ -1,19 +1,47 @@
-﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+﻿@page "/login"
+@inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS // Inject IJSRuntime for JavaScript interop
+@using BlazorAppTask1.Models
 
-<AuthorizeView>
-    <Authorized>
-        Hello, @context.User.Identity?.Name!
-        <button class="nav-link btn btn-link" @onclick="BeginLogOut">Log out</button>
-    </Authorized>
-    <NotAuthorized>
-        <a href="authentication/login">Log in</a>
-    </NotAuthorized>
-</AuthorizeView>
+<h3>Login</h3>
 
-@code{
-    public void BeginLogOut()
+<EditForm Model="@user" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Username:</label>
+        <InputText @bind-Value="user.Username" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText @bind-Value="user.Password" type="password" />
+    </div>
+    <button type="submit">Login</button>
+</EditForm>
+
+@if (errorMessage != null)
+{
+    <div style="color:red">@errorMessage</div>
+}
+
+@code {
+    private UserLogin user = new UserLogin();
+    private string errorMessage;
+
+    private async Task HandleLogin()
     {
-        Navigation.NavigateToLogout("authentication/logout");
+        var response = await Http.PostAsJsonAsync("https://localhost:7231/api/Auth/login", user);
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("sessionStorage.setItem", "authToken", token);
+            Navigation.NavigateTo("/"); 
+        }
+        else
+        {
+            errorMessage = "Invalid username or password.";
+        }
     }
 }
